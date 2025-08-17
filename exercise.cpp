@@ -16,6 +16,7 @@ struct Node
         left = right = nullptr;
     }
 };
+int N = 100;
 
 // Breadth-First Traversal (Level Order Traversal)
 void breadthFirstTraversal(Node *root)
