@@ -1,203 +1,119 @@
 #include <iostream>
-
 using namespace std;
 
-class Node
+// Cấu trúc Node của cây BST
+struct TreeNode
 {
-public:
-    int data;
-    Node *left;
-    Node *right;
+    int val;
+    TreeNode *left;
+    TreeNode *right;
 
-    Node(const int &data) { this->data = data; }
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
 };
 
-class BinarySearchTree
+// Thêm phần tử vào BST
+TreeNode *insert(TreeNode *root, int key)
 {
-private:
-    Node *root;
-
-protected:
-    bool addRec(Node *&root, const int &value);
-    bool removeRec(Node *&, const int &);
-    int getSizeRec(Node *);
-    void printInOrderRec(Node *node) const
-    {
-        if (node != NULL)
-        {
-            printInOrderRec(node->left);
-            cout << node->data << " ";
-            printInOrderRec(node->right);
-        }
-    }
-
-public:
-    BinarySearchTree()
-    {
-        this->root = NULL;
-    }
-    bool add(const int &value);
-    bool remove(const int &value);
-    int getSize();
-    void printInOrder() const
-    {
-        printInOrderRec(root);
-        cout << endl;
-    }
-};
-
-bool BinarySearchTree::addRec(Node *&root, const int &value)
-{
-    if (root == NULL)
-    {
-        root = new Node(value);
-        return true;
-    }
-    if (value < root->data)
-    {
-        return addRec(root->left, value);
-    }
-    else if (value > root->data)
-    {
-        return addRec(root->right, value);
-    }
-    else
-    {
-        return false;
-    }
+    if (root == nullptr)
+        return new TreeNode(key);
+    if (key < root->val)
+        root->left = insert(root->left, key);
+    else if (key > root->val)
+        root->right = insert(root->right, key);
+    return root;
 }
 
-bool BinarySearchTree::add(const int &value)
+// Tìm kiếm phần tử trong BST
+TreeNode *search(TreeNode *root, int key)
 {
-    return addRec(root, value);
+    if (root == nullptr || root->val == key)
+        return root;
+    if (key < root->val)
+        return search(root->left, key);
+    return search(root->right, key);
 }
 
-bool BinarySearchTree::removeRec(Node *&root, const int &value)
+// Tìm node có giá trị nhỏ nhất trong cây (hữu ích khi xóa)
+TreeNode *findMin(TreeNode *node)
 {
-    if (root == NULL)
-    {
-        return false;
-    }
-    if (value < root->data)
-    {
-        return removeRec(root->left, value);
-    }
-    else if (value > root->data)
-    {
-        return removeRec(root->right, value);
-    }
+    while (node->left != nullptr)
+        node = node->left;
+    return node;
+}
+
+// Xóa phần tử trong BST
+TreeNode *deleteNode(TreeNode *root, int key)
+{
+    if (root == nullptr)
+        return root;
+
+    if (key < root->val)
+        root->left = deleteNode(root->left, key);
+    else if (key > root->val)
+        root->right = deleteNode(root->right, key);
     else
     {
-        if (root->left == NULL && root->right == NULL)
+        if (root->left == nullptr)
         {
+            TreeNode *temp = root->right;
             delete root;
-            root = NULL;
+            return temp;
         }
-        else if (root->left != NULL && root->right == NULL)
+        else if (root->right == nullptr)
         {
-            Node *tmp = root;
-            root = root->left;
-            delete tmp;
+            TreeNode *temp = root->left;
+            delete root;
+            return temp;
         }
-        else if (root->left == NULL && root->right != NULL)
-        {
-            Node *tmp = root;
-            root = root->right;
-            delete tmp;
-        }
-        else
-        {
-            Node *maxLeft = root->left;
-            while (maxLeft->right != NULL)
-            {
-                maxLeft = maxLeft->right;
-            }
-            root->data = maxLeft->data;
-            removeRec(root->left, maxLeft->data);
-        }
-        return true;
+        TreeNode *temp = findMin(root->right);
+        root->val = temp->val;
+        root->right = deleteNode(root->right, temp->val);
     }
+    return root;
 }
 
-bool BinarySearchTree::remove(const int &value)
+// Duyệt Inorder (in theo thứ tự tăng dần)
+void inorder(TreeNode *root)
 {
-    return removeRec(root, value);
+    if (root == nullptr)
+        return;
+    inorder(root->left);
+    cout << root->val << " ";
+    inorder(root->right);
 }
 
-int BinarySearchTree::getSizeRec(Node *root)
-{
-    int cnt = 0;
-    if (root)
-    {
-        cnt++;
-        if (root->left != NULL)
-        {
-            cnt += getSizeRec(root->left);
-        }
-        if (root->right != NULL)
-        {
-            cnt += getSizeRec(root->right);
-        }
-    }
-    return cnt;
-}
-
-int BinarySearchTree::getSize()
-{
-    return getSizeRec(root);
-}
-
+// === HÀM MAIN ===
 int main()
 {
-    BinarySearchTree bst;
+    TreeNode *root = nullptr;
 
-    // Test 1: Empty tree
-    cout << "Test 1: Empty tree size: " << bst.getSize() << endl;
+    // Thêm các giá trị vào BST
+    int values[] = {50, 30, 70, 20, 40, 60, 80};
+    for (int val : values)
+    {
+        root = insert(root, val);
+    }
 
-    // Test 2: Add elements
-    cout << "\nTest 2: Adding elements" << endl;
-    cout << "Adding 10: " << (bst.add(10) ? "Success" : "Failed") << endl;
-    cout << "Adding 5: " << (bst.add(5) ? "Success" : "Failed") << endl;
-    cout << "Adding 15: " << (bst.add(15) ? "Success" : "Failed") << endl;
-    cout << "Adding 3: " << (bst.add(3) ? "Success" : "Failed") << endl;
-    cout << "Adding 7: " << (bst.add(7) ? "Success" : "Failed") << endl;
-    cout << "Adding 12: " << (bst.add(12) ? "Success" : "Failed") << endl;
-    cout << "Adding 18: " << (bst.add(18) ? "Success" : "Failed") << endl;
+    cout << "Inorder traversal of the BST: ";
+    inorder(root);
+    cout << endl;
 
-    // Test 3: Try adding duplicate
-    cout << "\nTest 3: Adding duplicate" << endl;
-    cout << "Adding 10 again: " << (bst.add(10) ? "Success" : "Failed (Expected, no duplicates allowed)") << endl;
+    // Tìm kiếm giá trị
+    int searchKey = 40;
+    TreeNode *found = search(root, searchKey);
+    if (found)
+        cout << "Found " << searchKey << " in the BST.\n";
+    else
+        cout << searchKey << " not found in the BST.\n";
 
-    // Test 4: Check size after additions
-    cout << "\nTest 4: Tree size after additions: " << bst.getSize() << endl;
-    // Test 5: Remove leaf node
-    cout << "\nTest 5: Removing leaf node" << endl;
-    cout << "Removing 3: " << (bst.remove(3) ? "Success" : "Failed") << endl;
-    cout << "Tree size after removal: " << bst.getSize() << endl;
+    // Xóa một node
+    int deleteKey = 30;
+    cout << "Deleting " << deleteKey << " from the BST...\n";
+    root = deleteNode(root, deleteKey);
 
-    // Test 6: Remove node with one child
-    cout << "\nTest 6: Removing node with one child" << endl;
-    cout << "Removing 12: " << (bst.remove(12) ? "Success" : "Failed") << endl;
-    cout << "Tree size after removal: " << bst.getSize() << endl;
-
-    // Test 7: Remove node with two children
-    cout << "\nTest 7: Removing node with two children" << endl;
-    cout << "Removing 15: " << (bst.remove(15) ? "Success" : "Failed") << endl;
-    cout << "Tree size after removal: " << bst.getSize() << endl;
-
-    // Test 8: Remove root
-    cout << "\nTest 8: Removing root" << endl;
-    cout << "Removing 10: " << (bst.remove(10) ? "Success" : "Failed") << endl;
-    cout << "Tree size after removal: " << bst.getSize() << endl;
-
-    // Test 9: Remove non-existing element
-    cout << "\nTest 9: Removing non-existing element" << endl;
-    cout << "Removing 100: " << (bst.remove(100) ? "Success (Unexpected)" : "Failed (Expected)") << endl;
-
-    // Test 10: Add after removals
-    cout << "\nTest 10: Adding after removals" << endl;
-    cout << "Adding 22: " << (bst.add(22) ? "Success" : "Failed") << endl;
-    cout << "Tree size: " << bst.getSize() << endl;
+    cout << "Inorder after deletion: ";
+    inorder(root);
+    cout << endl;
 
     return 0;
 }
